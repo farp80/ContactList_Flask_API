@@ -42,6 +42,7 @@ def get_contact():
         db.session.add(user1)
         db.session.commit()
         return jsonify(user1.serialize()), 200
+
     if request.method == 'GET':
         people_query = Contact.query.all()
         all_people = list(map(lambda x: x.serialize(), people_query))
@@ -51,7 +52,7 @@ def get_contact():
             people_array.append(one_people)
         return jsonify(people_array), 200
 
-@app.route('/contact/<contact_id>', methods=['GET', 'PUT'])
+@app.route('/contact/<contact_id>', methods=['DELETE', 'PUT', 'GET'])
 def get_specific_contact(contact_id):
     if request.method == 'PUT':
         user1 = Contact.query.get(contact_id)
@@ -76,10 +77,21 @@ def get_specific_contact(contact_id):
         db.session.commit()
         return jsonify(user1.serialize()), 200
 
+    if request.method == 'DELETE':
+        user1 = Contact.query.get(contact_id)
+        if user1 is None:
+            raise APIException('User not found', status_code=404)
+
+        db.session.delete(user1)
+        db.session.commit()
+        return jsonify(user1.serialize()), 200
+
     if request.method == 'GET':
         user1 = Contact.query.get(contact_id)
-        print("USER: " + user1.full_name)
-        return jsonify(user1), 200
+        if user1 is None:
+            raise APIException('User not found', status_code=404)
+
+        return jsonify(user1.serialize()), 200
 
 
 if __name__ == '__main__':
