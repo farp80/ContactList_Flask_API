@@ -31,12 +31,13 @@ def sitemap():
 @app.route('/contact', methods=['GET', 'POST'])
 def get_contact():
     if request.method == 'POST':
+        body = request.get_json()
         user1 = Contact(
-            first_name="Jorge",
-            email="jorgesolo_my_super@email.com",
-            address="4445 W Main Ave",
-            last_name="Sairf",
-            phone="843-333-5678")
+            full_name=body['full_name'],
+            email=body['email'],
+            address=body['address'],
+            phone=body['phone'],
+            agenda_slug=body['agenda_slug'])
 
         db.session.add(user1)
         db.session.commit()
@@ -52,18 +53,33 @@ def get_contact():
 
 @app.route('/contact/<contact_id>', methods=['GET', 'PUT'])
 def get_specific_contact(contact_id):
-    user1 = Contact.query.get(contact_id)
+    if request.method == 'PUT':
+        user1 = Contact.query.get(contact_id)
 
-    if user1 is None:
-        raise APIException('User not found', status_code=404)
+        if user1 is None:
+            raise APIException('User not found', status_code=404)
 
-    body = request.get_json()
+        body = request.get_json()
 
-    if "first_name" in body:
-        user1.first_name = body["first_name"]
-    if "last_name" in body:
-        user1.last_name = body["last_name"]
+        if "full_name" in body:
+            user1.full_name = body["full_name"]
+        if "email" in body:
+            user1.email = body["email"]
+        if "phone" in body:
+            user1.phone = body["phone"]
+        if "address" in body:
+            user1.address = body["address"]
+        if "agenda_slug" in body:
+            user1.agenda_slug = body["agenda_slug"]
 
+        db.session.add(user1)
+        db.session.commit()
+        return jsonify(user1.serialize()), 200
+
+    if request.method == 'GET':
+        user1 = Contact.query.get(contact_id)
+        print("USER: " + user1.full_name)
+        return jsonify(user1), 200
 
 
 if __name__ == '__main__':
